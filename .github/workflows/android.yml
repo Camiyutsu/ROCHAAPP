@@ -20,7 +20,6 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # Instalamos Gradle en el runner
       - name: Install Gradle 8.7
         run: |
           curl -s "https://get.sdkman.io" | bash
@@ -28,13 +27,14 @@ jobs:
           sdk install gradle 8.7
           gradle --version
 
-      # Compilar el APK dentro de la carpeta app
-      - name: Build Release APK (:app)
-        run: gradle assembleRelease -p app
+      # Buscar automáticamente el build.gradle y compilar
+      - name: Build Release APK
+        run: |
+          cd "$(dirname $(find . -name 'build.gradle' -o -name 'build.gradle.kts' | head -n 1))"
+          gradle assembleRelease
 
-      # Subir el APK compilado como artefacto
       - name: Upload Release APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/build/outputs/apk/release/app-release.apk
+          path: "**/app-release.apk"
