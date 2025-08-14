@@ -3,7 +3,8 @@ name: Android CI - Build Release APK
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -17,32 +18,23 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
+          java-version: '17'
 
-      # Instalamos Gradle en el runner y lo usamos directamente (sin ./gradlew)
-            - name: Build Release APK (:app)
+      # Instalamos Gradle en el runner
+      - name: Install Gradle 8.7
         run: |
+          curl -s "https://get.sdkman.io" | bash
           source "$HOME/.sdkman/bin/sdkman-init.sh"
-          gradle assembleRelease -p app
+          sdk install gradle 8.7
+          gradle --version
 
-
-      # (Opcional) ver estructura para depurar si algo no cuadra
-      - name: Print tree
-        run: |
-          echo "Repo root content:"
-          ls -la
-          echo "app module content:"
-          ls -la app || true
-
-      # Compilar el APK de release del módulo :app
+      # Compilar el APK dentro de la carpeta app
       - name: Build Release APK (:app)
-        run: |
-          source "$HOME/.sdkman/bin/sdkman-init.sh"
-          gradle :app:assembleRelease
+        run: gradle assembleRelease -p app
 
-      # Subir el artefacto generado
+      # Subir el APK compilado como artefacto
       - name: Upload Release APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/release/app-release.apk
