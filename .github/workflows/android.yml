@@ -19,32 +19,29 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      # Instala Gradle con SDKMAN solo para poder generar el wrapper si no existe
-      - name: Install Gradle (for wrapper)
+      # Instalamos Gradle en el runner y lo usamos directamente (sin ./gradlew)
+      - name: Install Gradle 8.7
         run: |
           curl -s "https://get.sdkman.io" | bash
           source "$HOME/.sdkman/bin/sdkman-init.sh"
           sdk install gradle 8.7
           gradle --version
 
-      # Crea gradlew/gradle-wrapper si falta en el repo
-      - name: Generate Gradle wrapper if missing
+      # (Opcional) ver estructura para depurar si algo no cuadra
+      - name: Print tree
+        run: |
+          echo "Repo root content:"
+          ls -la
+          echo "app module content:"
+          ls -la app || true
+
+      # Compilar el APK de release del módulo :app
+      - name: Build Release APK (:app)
         run: |
           source "$HOME/.sdkman/bin/sdkman-init.sh"
-          if [ ! -f ./gradlew ]; then
-            gradle wrapper --gradle-version 8.7
-            chmod +x ./gradlew
-          fi
+          gradle :app:assembleRelease
 
-      # Ahora que ya existe el wrapper, habilitamos caché de Gradle
-      - name: Set up Gradle cache
-        uses: gradle/actions/setup-gradle@v3
-
-      # Compila el APK de release del módulo :app (ruta segura)
-      - name: Build Release APK
-        run: ./gradlew :app:assembleRelease
-
-      # Sube cualquier APK generado en release
+      # Subir el artefacto generado
       - name: Upload Release APK artifact
         uses: actions/upload-artifact@v4
         with:
