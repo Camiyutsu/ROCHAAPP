@@ -20,12 +20,11 @@ jobs:
           java-version: "17"
 
       # Instalamos Gradle en el runner y lo usamos directamente (sin ./gradlew)
-      - name: Install Gradle 8.7
+            - name: Build Release APK (:app)
         run: |
-          curl -s "https://get.sdkman.io" | bash
           source "$HOME/.sdkman/bin/sdkman-init.sh"
-          sdk install gradle 8.7
-          gradle --version
+          gradle assembleRelease -p app
+
 
       # (Opcional) ver estructura para depurar si algo no cuadra
       - name: Print tree
